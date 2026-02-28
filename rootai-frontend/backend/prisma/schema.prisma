@@ -1,0 +1,93 @@
+// ─────────────────────────────────────────────────────
+// RootAI — Prisma Schema for Neon PostgreSQL
+// ─────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+// ─── Field: represents a physical field / zone ───
+model Field {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  location  String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sensorReadings SensorReading[]
+  healthScores   HealthScore[]
+  alerts         Alert[]
+
+  @@map("fields")
+}
+
+// ─── SensorReading: one row of CSV sensor data ───
+model SensorReading {
+  id          String   @id @default(uuid())
+  fieldId     String   @map("field_id")
+  recordedAt  DateTime @map("recorded_at")
+  pH          Float    @map("ph")
+  moisture    Float
+  nitrogen    Float
+  phosphorus  Float
+  potassium   Float
+  temperature Float
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  field Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@index([fieldId])
+  @@index([recordedAt])
+  @@map("sensor_readings")
+}
+
+// ─── HealthScore: computed soil health score per field ───
+model HealthScore {
+  id        String   @id @default(uuid())
+  fieldId   String   @map("field_id")
+  score     Float
+  status    String   // "GOOD", "MODERATE", "CRITICAL"
+  details   Json?    // breakdown per parameter
+  createdAt DateTime @default(now()) @map("created_at")
+
+  field Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@index([fieldId])
+  @@map("health_scores")
+}
+
+// ─── Alert: threshold breach alerts ───
+model Alert {
+  id        String   @id @default(uuid())
+  fieldId   String   @map("field_id")
+  parameter String   // "pH", "moisture", "nitrogen", etc.
+  severity  String   // "CRITICAL", "WARNING"
+  value     Float
+  threshold Float
+  message   String
+  fix       String?
+  timeline  String?  // "within 3 to 5 days", etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  field Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@index([fieldId])
+  @@map("alerts")
+}
+
+// ─── CropRecommendation: planting window recommendations ───
+model CropRecommendation {
+  id              String   @id @default(uuid())
+  healthScoreId   String?  @map("health_score_id")
+  plantingStatus  String   @map("planting_status")
+  reason          String?
+  crops           String[]
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("crop_recommendations")
+}
