@@ -40,22 +40,24 @@
         }
 
         body.dark {
-            --bg: #0f1a0f;
-            --surface: #1a2e1a;
-            --border: #2d4a2d;
-            --primary: #52b788;
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --surface2: #1f1f1f;
+            --border: #2a2a2a;
+            --primary: #4ade80;
             --accent: #4ade80;
-            --text: #f0f0f0;
-            --text-dim: #9ca89c;
+            --text: #ffffff;
+            --text-dim: #b3b3b3;
             --critical: #f87171;
-            --warning: #facc15;
+            --warning: #fbbf24;
             --good: #4ade80;
-            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow: rgba(0, 0, 0, 0.5);
 
-            --critical-bg: rgba(248, 113, 113, 0.15);
-            --warning-bg: rgba(250, 204, 21, 0.15);
-            --good-bg: rgba(74, 222, 128, 0.15);
-            --primary-bg: rgba(82, 183, 136, 0.15);
+            /* Clear out tinted backgrounds to strictly fallback onto plain surfaces */
+            --critical-bg: var(--surface);
+            --warning-bg: var(--surface);
+            --good-bg: var(--surface);
+            --primary-bg: var(--surface);
         }
 
         /* Reset & Base Styles */
@@ -494,7 +496,12 @@
 
     <!-- NAVBAR -->
     <nav class="navbar">
-        <div class="logo">RootAI</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="back-btn"
+                style="background: none; border: none; font-family: inherit; font-size: 14px; color: var(--text-dim); cursor: pointer;">←
+                Back</button>
+            <div class="logo">RootAI</div>
+        </div>
 
         <div class="navbar-center">
             <select id="field-select">
@@ -509,7 +516,8 @@
             <button class="nav-btn" id="theme-toggle" title="Toggle Theme">
                 <i class="fa-solid fa-sun" id="theme-icon"></i>
             </button>
-            <a href="weather.html" class="nav-btn" title="Weather Forecast">
+            <a href="weather.html" class="nav-btn" title="Weather Forecast"
+                onclick="window.location.href='weather.html'">
                 <i class="fa-solid fa-cloud-sun"></i>
             </a>
             <a href="prediction.html" class="nav-btn" title="Soil Prediction">
@@ -518,8 +526,13 @@
         </div>
     </nav>
 
+    <div style="position: fixed; top: 64px; left: 0; width: 100%; padding: 8px 24px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-dim); z-index: 99;"
+        id="file-info-bar">
+        Showing data for: <span id="display-filename" style="font-weight: 500; color: var(--text);"></span>
+    </div>
+
     <!-- PAGE WRAPPER -->
-    <main class="page-wrapper">
+    <main class="page-wrapper" style="padding-top: 120px;">
 
         <!-- ROW 1 — HEALTH SCORE + CURRENT WEATHER -->
         <div class="row-1">
@@ -692,6 +705,27 @@
             const themeIcon = document.getElementById('theme-icon');
             const scoreBar = document.getElementById('score-bar');
             const fieldSelect = document.getElementById('field-select');
+
+            // Replace strict file check with a dummy setup for now so the dashboard can be previewed directly
+            let uploadedFile = sessionStorage.getItem('uploadedFile');
+            if (!uploadedFile) {
+                uploadedFile = "sample-farm-data.csv (Demo Mode)";
+            }
+
+            // Display uploaded filename
+            const filenameDisplay = document.getElementById('display-filename');
+            if (filenameDisplay) {
+                filenameDisplay.textContent = uploadedFile;
+            }
+
+            // Back button logic
+            const backBtn = document.getElementById('back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', () => {
+                    sessionStorage.removeItem('uploadedFile');
+                    window.location.href = 'index.html';
+                });
+            }
 
             // 1. Theme Logic
             function updateThemeIcon() {

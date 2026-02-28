@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RootAI — Weather Forecast</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --bg: #ffffff;
+            --surface: #f9f9f9;
+            --border: #e0e0e0;
+            --primary: #2d6a4f;
+            --accent: #52b788;
+            --text: #1b1b1b;
+            --text-dim: #4a4a4a;
+            --critical: #dc2626;
+            --warning: #d97706;
+            --good: #16a34a;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        body.dark {
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --surface2: #1f1f1f;
+            --border: #2a2a2a;
+            --primary: #4ade80;
+            --accent: #4ade80;
+            --text: #ffffff;
+            --text-dim: #b3b3b3;
+            --critical: #f87171;
+            --warning: #fbbf24;
+            --good: #4ade80;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            animation: fadeIn 0.4s ease-out forwards;
+            font-size: 15px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 64px;
+            background-color: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .navbar .logo {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 22px;
+        }
+
+        .btn-back-nav {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--border);
+        }
+
+        /* Page Wrapper */
+        .page-wrapper {
+            padding-top: 80px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-left: 24px;
+            padding-right: 24px;
+            flex: 1;
+            width: 100%;
+        }
+
+        /* Titles */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .section-title.mt-32 {
+            margin-top: 32px;
+        }
+
+        /* ROW 1 — 7 DAY FORECAST CARDS */
+        .forecast-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .forecast-card {
+            flex: 1;
+            min-width: 130px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .forecast-card.today {
+            border-top: 3px solid var(--primary);
+        }
+
+        .fc-day {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .fc-icon {
+            font-size: 36px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .fc-icon.rain {
+            color: #60a5fa;
+        }
+
+        .fc-icon.cloudy {
+            color: #facc15;
+        }
+
+        .fc-icon.sunny {
+            color: #fb923c;
+        }
+
+        .fc-temp {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .fc-cond {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .fc-hum {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+
+        /* ROW 2 — HOW WEATHER AFFECTS YOUR SOIL */
+        .impact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .impact-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 12px var(--shadow);
+            border-left: 4px solid var(--border);
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .impact-card.blue {
+            border-left-color: #60a5fa;
+        }
+
+        .impact-card.red {
+            border-left-color: #f87171;
+        }
+
+        .impact-card.green {
+            border-left-color: #4ade80;
+        }
+
+        .ic-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .ic-body {
+            font-size: 15px;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .ic-action {
+            font-size: 15px;
+            color: var(--text);
+        }
+
+        .ic-action-label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 16px;
+            }
+
+            .btn-back-nav {
+                font-size: 13px;
+            }
+
+            .btn-back-full {
+                display: none;
+            }
+
+            .btn-back-short {
+                display: inline;
+            }
+
+            .page-wrapper {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .btn-back-full {
+                display: inline;
+            }
+
+            .btn-back-short {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="btn-back-nav" id="back-btn" title="Back to Dashboard">
+                <span class="btn-back-full">← Back to Dashboard</span>
+                <span class="btn-back-short">← Back</span>
+            </button>
+            <div class="logo">RootAI</div>
+        </div>
+
+        <div class="navbar-right">
+            <button class="nav-btn" id="theme-toggle" title="Toggle Theme">
+                <i class="fa-solid fa-sun" id="theme-icon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- PAGE WRAPPER -->
+    <main class="page-wrapper">
+
+        <!-- ROW 1 — 7 DAY FORECAST CARDS -->
+        <h2 class="section-title">7 Day Forecast</h2>
+        <div class="forecast-grid">
+            <!-- Today -->
+            <div class="forecast-card today">
+                <div class="fc-day">Today</div>
+                <div class="fc-icon rain"><i class="fa-solid fa-cloud-rain"></i></div>
+                <div class="fc-temp">32°C</div>
+                <div class="fc-cond">Heavy Rain</div>
+                <div class="fc-hum">Hum: 82%</div>
+            </div>
+            <!-- Day 2 -->
+            <div class="forecast-card">
+                <div class="fc-day">Day 2</div>
+                <div class="fc-icon rain"><i class="fa-solid fa-cloud-rain"></i></div>
+                <div class="fc-temp">31°C</div>
+                <div class="fc-cond">Heavy Rain</div>
+                <div class="fc-hum">Hum: 80%</div>
+            </div>
+            <!-- Day 3 -->
+            <div class="forecast-card">
+                <div class="fc-day">Day 3</div>
+                <div class="fc-icon rain"><i class="fa-solid fa-cloud-rain"></i></div>
+                <div class="fc-temp">30°C</div>
+                <div class="fc-cond">Rain</div>
+                <div class="fc-hum">Hum: 75%</div>
+            </div>
+            <!-- Day 4 -->
+            <div class="forecast-card">
+                <div class="fc-day">Day 4</div>
+                <div class="fc-icon cloudy"><i class="fa-solid fa-cloud-sun"></i></div>
+                <div class="fc-temp">29°C</div>
+                <div class="fc-cond">Cloudy</div>
+                <div class="fc-hum">Hum: 65%</div>
+            </div>
+            <!-- Day 5 -->
+            <div class="forecast-card">
+                <div class="fc-day">Day 5</div>
+                <div class="fc-icon sunny"><i class="fa-solid fa-sun"></i></div>
+                <div class="fc-temp">31°C</div>
+                <div class="fc-cond">Sunny</div>
+                <div class="fc-hum">Hum: 55%</div>
+            </div>
+            <!-- Day 6 -->
+            <div class="forecast-card">
+                <div class="fc-day">Day 6</div>
+                <div class="fc-icon sunny"><i class="fa-solid fa-sun"></i></div>
+                <div class="fc-temp">33°C</div>
+                <div class="fc-cond">Sunny</div>
+                <div class="fc-hum">Hum: 50%</div>
+            </div>
+            <!-- Day 7 -->
+            <div class="forecast-card">
+                <div class="fc-day">Day 7</div>
+                <div class="fc-icon sunny"><i class="fa-solid fa-sun"></i></div>
+                <div class="fc-temp">34°C</div>
+                <div class="fc-cond">Sunny</div>
+                <div class="fc-hum">Hum: 45%</div>
+            </div>
+        </div>
+
+        <!-- ROW 2 — HOW WEATHER AFFECTS YOUR SOIL -->
+        <h2 class="section-title mt-32">How Weather Affects Your Soil</h2>
+        <div class="impact-list">
+            <!-- Card 1 -->
+            <div class="impact-card blue">
+                <div class="ic-header">🌧 Heavy Rain Expected — Day 1 to 3</div>
+                <div class="ic-body">
+                    Your soil moisture is already at 71%. Heavy rain will push it above 85% causing waterlogging and
+                    root rot risk. Roots cannot breathe in waterlogged soil and crop health will deteriorate quickly.
+                </div>
+                <div class="ic-action">
+                    <span class="ic-action-label">Action:</span> Clear all drainage channels today before rain arrives.
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="impact-card red">
+                <div class="ic-header">🌡 Temperature Rising — Day 5 to 7</div>
+                <div class="ic-body">
+                    Temperature will reach 34 to 35°C after rain clears. Combined with already wet soil this risks root
+                    damage and stunted crop growth. High temperature after heavy rain is one of the most damaging
+                    combinations for crops.
+                </div>
+                <div class="ic-action">
+                    <span class="ic-action-label">Action:</span> Apply a mulch layer of 5 to 7 cm after rain stops to
+                    reduce soil heat absorption.
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="impact-card green">
+                <div class="ic-header">💧 Best Time to Apply Fertilizer</div>
+                <div class="ic-body">
+                    Do not apply any fertilizer during rain days 1 to 3. It will wash away into drainage water and waste
+                    your money and resources without any benefit to the soil.
+                </div>
+                <div class="ic-action">
+                    <span class="ic-action-label">Best Window:</span> Day 4 to 5 after rain clears. Apply agricultural
+                    lime first then wait 2 days before applying urea fertilizer.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        RootAI — Soil Health Dashboard | Hackathon Build 2024
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const backBtn = document.getElementById('back-btn');
+
+            // 1. Theme Logic on load
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark');
+            }
+
+            function updateThemeIcon() {
+                if (body.classList.contains('dark')) {
+                    themeIcon.className = 'fa-solid fa-moon';
+                } else {
+                    themeIcon.className = 'fa-solid fa-sun';
+                }
+            }
+            updateThemeIcon();
+
+            // 2. Check sessionStorage
+            // For live preview without file, we use the fallback setup for Demo Mode
+            let uploadedFile = sessionStorage.getItem('uploadedFile');
+            if (!uploadedFile) {
+                uploadedFile = "sample-farm-data.csv (Demo Mode)"; // Fallback for testing live
+            }
+
+            // Theme toggle
+            themeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark');
+                const isDark = body.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateThemeIcon();
+            });
+
+            // Back button
+            backBtn.addEventListener('click', () => {
+                window.location.href = 'dashboard.html';
+            });
+        });
+    </script>
+</body>
+
+</html>
