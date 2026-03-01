@@ -210,3 +210,4 @@ RootAI converts raw sensor logs into meaningful agricultural intelligence by:
 > RootAI aims to make smart farming accessible, affordable, and scalable.
 
 ## Google Drive Link- https://drive.google.com/drive/folders/1eJIq2Egzc5kPN8UB20O6ERdTH86IqRbr
+## Deployement Link- root-ai-git-main-nayakparth2257-3350s-projects.vercel.app
